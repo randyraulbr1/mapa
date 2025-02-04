@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Mapa con Misiones</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf"></script>
+    <style>
+        #map { height: 100vh; }
+        #missionPanel {
+            display: none;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 20px;
+            border: 2px solid black;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="missionPanel">
+        <p id="missionText">¡Nueva Misión!</p>
+        <button onclick="acceptMission()">Aceptar</button>
+        <button onclick="declineMission()">Rechazar</button>
+    </div>
+
+    <script>
+        var map = L.map('map', { zoomControl: true }).setView([23.0090, -82.7540], 15);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        var boundary = [
+            [-82.765, 23.015],
+            [-82.740, 23.015],
+            [-82.740, 22.995],
+            [-82.765, 22.995]
+        ];
+        var mask = L.polygon([
+            [[-90, 30], [0, 30], [0, 10], [-90, 10], [-90, 30]], // Fondo negro global
+            boundary // Mariel visible
+        ], {
+            color: "black",
+            fillColor: "black",
+            fillOpacity: 0.8
+        }).addTo(map);
+
+        var playerMarker = L.marker([23.0090, -82.7540], {draggable: true}).addTo(map).bindPopup("Tu ubicación");
+        
+        playerMarker.on('dragend', function(event) {
+            var newPos = playerMarker.getLatLng();
+            console.log("Nueva posición: ", newPos.lat, newPos.lng);
+        });
+
+        function checkCollisions() {
+            var playerPos = playerMarker.getLatLng();
+            enemyMarkers.forEach(marker => {
+                var distance = map.distance(playerPos, marker.getLatLng());
+                if (distance < 20) {
+                    document.getElementById('missionText').innerText = "¡Misión por enfrentar un enemigo!";
+                    document.getElementById('missionPanel').style.display = 'block';
+                }
+            });
+        }
+
+        function acceptMission() {
+            alert("Misión aceptada");
+            document.getElementById('missionPanel').style.display = 'none';
+        }
+
+        function declineMission() {
+            alert("Misión rechazada");
+            document.getElementById('missionPanel').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
